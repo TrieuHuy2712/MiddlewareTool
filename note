@@ -1,0 +1,6 @@
+- Tải pyqt5-tools: pip install pyqt5-tools
+- Chạy Qt Designer: qt5-tools designer
+- Convert QA Designer to Python
+    - 1. Save file ở thư mục project
+    - 2. Chạy lệnh:  pyuic5 --tên_file_ui .\blank.ui -o --tạo_.py_file_mới xyz.py
+        - pyuic5 .\main.ui -o GUIMain.py

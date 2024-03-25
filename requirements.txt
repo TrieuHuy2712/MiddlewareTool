@@ -1,0 +1,10 @@
+dataclasses
+dataclasses-json~=0.6.3
+selenium~=4.17.2
+PyYAML
+chromedriver-autoinstaller
+PyQt5
+currencies
+pandas
+openpyxl
+pyqt-checkbox-list-widget
