@@ -12,7 +12,7 @@ from src.Enums import SapoShop
 from src.Factory.OrderFactory import OrderAutoFactory
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
-from src.utils import set_default_if_none, get_current_date_time
+from src.utils import set_default_if_none, get_current_date_time_to_midnight
 
 
 class QStringLiteral:
@@ -53,8 +53,8 @@ class ActionMainGui(QMainWindow):
         self.main_gui.cbSearchType.addItems(filter_order_type)
 
         # Set datetime
-        self.main_gui.dateTimeTo.setDateTime(get_current_date_time(date_diff=1))
-        self.main_gui.dateTimeFrom.setDateTime(get_current_date_time(date_diff=-1))
+        self.main_gui.dateTimeTo.setDateTime(get_current_date_time_to_midnight(date_diff=1))
+        self.main_gui.dateTimeFrom.setDateTime(get_current_date_time_to_midnight(date_diff=-7))
 
     def changing_search_type(self):
         if self.main_gui.cbSearchType.currentIndex() == 0:

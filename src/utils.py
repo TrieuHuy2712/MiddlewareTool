@@ -118,9 +118,9 @@ def set_default_if_none(input_data, default_value=''):
     return default_value if input_data is None else input_data
 
 
-def get_current_date_time(format_time='%d/%m/%d %H:%M:%S %p', date_diff=0):
+def get_current_date_time_to_midnight(format_time='%d/%m/%d %H:%M:%S %p', date_diff=0):
     # dd/MM/yyyy hh:mm:ss AP
-    return datetime.now() + timedelta(days=date_diff)
+    return datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=date_diff)
 
 
 def get_money_format(money):
