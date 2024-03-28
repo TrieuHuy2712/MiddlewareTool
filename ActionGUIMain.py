@@ -78,6 +78,7 @@ class ActionMainGui(QMainWindow):
             QMessageBox.critical(self, 'Lỗi', 'Không tìm thầy hóa đơn. Bạn vui lòng nhập tìm lại', QMessageBox.Ok)
         else:
             self.order_factory.submit_order(self.orders)
+            QMessageBox.information(self, 'Thông báo', 'Đã thêm hóa đơn vào Misa!', QMessageBox.Ok)
 
     def action_click_search(self):
         search_text = self.main_gui.tbSearch.toPlainText()
@@ -124,6 +125,7 @@ class ActionMainGui(QMainWindow):
             self.main_gui.tableWidget.setRowCount(len(orders))
             self.orders = orders
             self.create_detail_table()
+            QMessageBox.information(self, 'Thông báo', 'Đã lấy hóa đơn từ Sapo theo bộ lọc', QMessageBox.Ok)
 
     def go_to_detail_page(self, order: Order):
         self.detail.get_order_detail(order)
