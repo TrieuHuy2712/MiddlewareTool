@@ -3,10 +3,7 @@ import sys
 from PyQt5 import QtWidgets
 
 from ActionGUIMain import ActionMainGui
-from GUIMain import Ui_MainWindow
-from src.Enums import SapoShop
-from src.Factory.OrderFactory import OrderFactory, OrderAutoFactory
-from src.utils import get_item_information
+from src.Factory.OrderFactory import OrderFactory
 
 
 def main():

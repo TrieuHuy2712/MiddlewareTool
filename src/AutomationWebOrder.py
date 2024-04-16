@@ -14,7 +14,7 @@ from src.Model.Item import Item, CompositeItem
 from src.Model.Order import Order
 from src.Singleton.AppConfig import AppConfig
 from src.utils import set_up_logger, get_value_of_config, attempt_check_exist_by_xpath, \
-    attempt_check_can_clickable_by_xpath, check_element_can_clickable, check_element_exist
+    attempt_check_can_clickable_by_xpath, check_element_exist
 
 
 class AutomationWebOrder(Web):

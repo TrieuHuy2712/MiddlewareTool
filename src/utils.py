@@ -7,6 +7,7 @@ from functools import lru_cache
 import logging.handlers
 
 import pandas
+import pytz
 import yaml
 from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -134,7 +135,7 @@ def get_item_information() -> list[InputProduct]:
     excel_data_df = pandas.read_excel('ITEM_INFORMATION.xlsx', sheet_name='Sheet1', skiprows=1)
 
     # Group columns
-    grouped = excel_data_df.groupby(['ITEM_ID','ITEM_NAME','ITEM_QUANTITY']).agg(list)
+    grouped = excel_data_df.groupby(['ITEM_ID', 'ITEM_NAME', 'ITEM_QUANTITY']).agg(list)
     convert_to_json = grouped.to_json(orient='index', indent=4)
 
     data = json.loads(convert_to_json)
@@ -171,3 +172,9 @@ def get_item_information() -> list[InputProduct]:
         transformed_data.append(InputProduct.from_dict(transformed_item))
     # Convert the list of transformed items back to a JSON string
     return transformed_data
+
+
+def parse_time_to_vietnam_zone(date: str):
+    utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+    local_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+    return utc_time_format.replace(tzinfo=pytz.utc).astimezone(local_tz).strftime("%Y-%m-%dT%H:%M:%SZ")

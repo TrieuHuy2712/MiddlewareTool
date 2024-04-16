@@ -1,3 +1,4 @@
+import datetime
 import json
 import math
 import time
@@ -9,14 +10,13 @@ from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 
 from src.Enums import SapoShop
-from src.Exceptions import OrderError
 from src.IRetreiveOrder import SAPO
 from src.Model.Item import Item, CompositeItem
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
 from src.Singleton.AppConfig import AppConfig
 from src.utils import get_value_of_config, set_up_logger, attempt_check_exist_by_xpath, \
-    attempt_check_can_clickable_by_xpath, check_element_can_clickable, get_item_information
+    attempt_check_can_clickable_by_xpath, check_element_can_clickable, get_item_information, parse_time_to_vietnam_zone
 
 
 def _update_product_with_sub_product(product, item, sub_product):
@@ -54,6 +54,7 @@ class AutomationSapoOrder(SAPO):
                 self.get_information_order(order)
                 self.get_order_source(order)
                 self.get_payment_method(order)
+                order.created_on = parse_time_to_vietnam_zone(order.created_on)
         except Exception as e:
             self.logging.critical(msg=f"[Date]Automation Sapo Order got error at get orders by date: {e}")
         finally:
@@ -213,6 +214,7 @@ class AutomationSapoOrder(SAPO):
         self.get_information_order(order)
         self.get_order_source(order)
         self.get_payment_method(order)
+        order.created_on = parse_time_to_vietnam_zone(order.created_on)
         self.orders.append(order)
 
     def get_website_cookie(self):

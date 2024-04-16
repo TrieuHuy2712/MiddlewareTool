@@ -2,11 +2,10 @@ from datetime import datetime
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem
-from currencies import Currency
 
 import GUIDetail
 from src.Model.Order import Order
-from src.utils import set_default_if_none, get_money_format
+from src.utils import get_money_format
 
 
 class DetailGUIMain(QtWidgets.QMainWindow):
