@@ -16,7 +16,8 @@ from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
 from src.Singleton.AppConfig import AppConfig
 from src.utils import get_value_of_config, set_up_logger, attempt_check_exist_by_xpath, \
-    attempt_check_can_clickable_by_xpath, check_element_can_clickable, get_item_information, parse_time_to_vietnam_zone
+    attempt_check_can_clickable_by_xpath, check_element_can_clickable, get_item_information, parse_time_to_vietnam_zone, \
+    parse_time_to_GMT
 
 
 def _update_product_with_sub_product(product, item, sub_product):
@@ -33,8 +34,8 @@ class AutomationSapoOrder(SAPO):
         self.logging = set_up_logger("Middleware_Tool")
         self.domain = self.get_domain(shop)
         self.orders = []
-        self.from_date = order.from_date
-        self.to_date = order.to_date
+        self.from_date = parse_time_to_GMT(order.from_date)
+        self.to_date = parse_time_to_GMT(order.to_date)
         self.to_search_order = order.orders
         self.payment_methods = []
         self.item_information = get_item_information()

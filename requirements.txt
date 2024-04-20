@@ -8,3 +8,5 @@ currencies
 pandas
 openpyxl
 pyqt-checkbox-list-widget
+PyInstaller
+pywin32

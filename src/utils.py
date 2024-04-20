@@ -178,3 +178,8 @@ def parse_time_to_vietnam_zone(date: str):
     utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
     local_tz = pytz.timezone('Asia/Ho_Chi_Minh')
     return utc_time_format.replace(tzinfo=pytz.utc).astimezone(local_tz).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def parse_time_to_GMT(date: str):
+    utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+    return utc_time_format.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
