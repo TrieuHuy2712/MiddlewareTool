@@ -31,6 +31,7 @@ class ActionMainGui(QMainWindow):
         self.order_factory = OrderAutoFactory()
         self.detail = DetailGUIMain()
         self.orders = []
+        self.checkboxes = []
 
     def add_action(self):
         self.main_gui.btnSearch.clicked.connect(self.action_click_search)
@@ -74,10 +75,10 @@ class ActionMainGui(QMainWindow):
             self.main_gui.dateTimeFrom.setReadOnly(False)
 
     def action_click_submit(self):
-        if len(self.orders) == 0:
+        if list(filter(lambda o: o.sent_to_misa == True,self.orders)) == 0:
             QMessageBox.critical(self, 'Lỗi', 'Không tìm thầy hóa đơn. Bạn vui lòng nhập tìm lại', QMessageBox.Ok)
         else:
-            self.order_factory.submit_order(self.orders)
+            self.order_factory.submit_order(list(filter(lambda o: o.sent_to_misa == True,self.orders)))
             QMessageBox.information(self, 'Thông báo', 'Đã thêm hóa đơn vào Misa!', QMessageBox.Ok)
 
     def action_click_search(self):
@@ -141,8 +142,10 @@ class ActionMainGui(QMainWindow):
         #     self.main_gui.cbSelectAll.setCheckState(1)
 
     def change_state_sent_to_misa(self, state, order: Order):
-        order = [ord for ord in self.orders if ord.code == order.code]
-        order[0].sent_to_misa = not order[0].sent_to_misa
+        for ord in self.orders:
+            if ord.code == order.code:
+                ord.sent_to_misa = not ord.sent_to_misa
+                break
         self.set_check_all_state()
 
     def change_state_all_orders_sent_to_misa(self, state):
@@ -167,7 +170,8 @@ class ActionMainGui(QMainWindow):
             else:
                 order.sent_to_misa = False
 
-            checkbox.stateChanged.connect(lambda state: self.change_state_sent_to_misa(state, order))
+            checkbox.stateChanged.connect(lambda state, order=order: self.change_state_sent_to_misa(state, order))
+            self.checkboxes.append(checkbox)
             cell_widget = QWidget()
             lay_out = QHBoxLayout(cell_widget)
             lay_out.addWidget(checkbox)

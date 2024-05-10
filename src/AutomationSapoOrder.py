@@ -52,10 +52,14 @@ class AutomationSapoOrder(SAPO):
             self.payment_methods = self.get_payment_methods()
             self.filter_orders_date_time()
             for order in self.orders:
-                self.get_information_order(order)
-                self.get_order_source(order)
-                self.get_payment_method(order)
-                order.created_on = parse_time_to_vietnam_zone(order.created_on)
+                try:
+                    self.get_information_order(order)
+                    self.get_order_source(order)
+                    self.get_payment_method(order)
+                    order.created_on = parse_time_to_vietnam_zone(order.created_on)
+                except Exception as e:
+                    self.logging.critical(msg=f"[Date]Automation Sapo Order got error at get at order {order.code} "
+                                              f"by date: {e}")
         except Exception as e:
             self.logging.critical(msg=f"[Date]Automation Sapo Order got error at get orders by date: {e}")
         finally:
@@ -223,7 +227,8 @@ class AutomationSapoOrder(SAPO):
 
     def get_information_order(self, order):
         for item in order.order_line_items:
-            item.discount_rate = str(round(float(item.discount_value) * 100 / float(item.price), 2))
+            if item.price != '0':
+                item.discount_rate = str(round(float(item.discount_value) * 100 / float(item.price), 2))
             information_item = self.find_item_by_id(item_id=item.barcode)
             # Check sku in composite process
             if item.is_composite:

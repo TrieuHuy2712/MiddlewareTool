@@ -9,7 +9,8 @@ from src.Exceptions import OrderError
 from src.Model.Order import Order
 from src.Singleton.AppConfig import AppConfig
 from src.utils import set_up_logger, get_value_of_config, attempt_check_exist_by_xpath, \
-    attempt_check_can_clickable_by_xpath, check_element_can_clickable, get_money_format, check_element_exist
+    attempt_check_can_clickable_by_xpath, check_element_can_clickable, get_money_format, check_element_exist, \
+    check_element_not_exist
 
 
 class AutomationMisaOrder:
@@ -17,6 +18,8 @@ class AutomationMisaOrder:
         self.orders = orders
         self.logging = set_up_logger("Middleware_Tool")
         self.driver = AppConfig().chrome_driver
+        self.missing_orders = []
+        self.handle_orders = []
 
     def send_orders_to_misa(self):
         try:
@@ -24,13 +27,21 @@ class AutomationMisaOrder:
             self.authentication()
             self.driver.maximize_window()
             for order in self.orders:
-                self.go_to_sale_page()
-                self.create_detail_invoice(order)
-                self.go_to_warehouse_page()
-                self.create_detail_warehouse_invoice(order)
+                try:
+                    self.go_to_sale_page()
+                    self.create_detail_invoice(order)
+                    self.go_to_warehouse_page()
+                    self.create_detail_warehouse_invoice(order)
+                    self.handle_orders.append(order.code) # Add infor handled orders
+                except OrderError as ex:
+                    self.logging.critical(msg=f"[Misa]Automation Misa Order {order.code} got error at : {ex}")
+                    self.missing_orders.append(order.code) # Add infor error orders
+                    self.open_website()
         except Exception as e:
-            self.logging.critical(msg=f"[Misa]Automation Misa Order got error at : {e}")
+            self.logging.critical(msg=f"[Misa]Automation Misa Order got internal error at : {e}")
         finally:
+            self.logging.info(msg=f"[Misa] Missing orders in running: {','.join(order for order in self.missing_orders)}")
+            self.logging.info(msg=f"[Misa] Not handle orders: {','.join(o.code for o in self.orders if o.code not in self.handle_orders)}")
             AppConfig().destroy_instance()
 
     def create_detail_invoice(self, order: Order):
@@ -69,8 +80,10 @@ class AutomationMisaOrder:
             attempt_check_can_clickable_by_xpath(save_button_xpath)
             self.driver.find_element(By.XPATH, save_button_xpath).click()
             self.escape_current_invoice()
-        except OrderError as e:
-            raise Exception(e.message)
+            self.logging.info(f"[Misa Sale Order] Created order {order.code}.")
+        except Exception as e:
+            self.logging.error(msg=f"[Misa Sale Order] Created order {order.code} failed.")
+            raise OrderError(message=f"Have error in create Misa order. {e}")
 
     def create_detail_warehouse_invoice(self, order: Order):
         try:
@@ -78,7 +91,7 @@ class AutomationMisaOrder:
             input_customer_xpath = '//div[text()="Tên khách hàng"]/parent::div/parent::div/parent::div/following-sibling::div//input'
             attempt_check_exist_by_xpath(input_customer_xpath)
             self.driver.find_element(By.XPATH, input_customer_xpath).send_keys(
-                f"{get_value_of_config('environment')}Khách hàng lẻ không lấy hóa đơn (Bán hàng qua {order.source_name})")
+                f"{get_value_of_config('environment')} Mã đơn hàng: {order.code}(Bán hàng qua {order.source_name})")
 
             # Input detail
             number_items = sum(
@@ -101,20 +114,25 @@ class AutomationMisaOrder:
                     current_row += 1
 
             # Add commercial discount
-            self.set_invoice_appendix(order=order)
+            #self.set_invoice_appendix(order=order)
             # Save invoice
             save_button_xpath = '//button[@shortkey-target="Save"]'
             attempt_check_can_clickable_by_xpath(save_button_xpath)
             self.driver.find_element(By.XPATH, save_button_xpath).click()
             self.escape_current_invoice()
-
-        except OrderError as e:
-            raise Exception(e.message)
+            self.logging.info(f"[Misa Warehouse] Created order {order.code}.")
+        except Exception as e:
+            self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed.")
+            raise OrderError(message=f"Have error in create Misa warehouse. {e}")
 
     def escape_current_invoice(self):
         # Escape
         attempt_check_can_clickable_by_xpath('//div[contains(@class,"close-btn header")]')
         self.driver.find_element(By.XPATH, '//div[contains(@class,"close-btn header")]').click()
+
+        # Check if existed after unit time
+        if not check_element_not_exist('//div[@class="title"]', timeout=30):
+            self.escape_current_invoice()
 
     def set_data_for_table(self, sku, quantity, discount_rate, current_row):
         # SKU Code
@@ -264,6 +282,16 @@ class AutomationMisaOrder:
             discount_checkbox_xpath = f'//table[@class="ms-table"]/tbody/tr[last()]/td[6]/div'
             attempt_check_can_clickable_by_xpath(discount_checkbox_xpath)
             self.driver.find_element(By.XPATH, discount_checkbox_xpath).click()
+
+            # Discount quantity
+            discount_quantity_xpath = f'//table[@class="ms-table"]/tbody/tr[last()]/td[8]/div'
+            attempt_check_exist_by_xpath(discount_quantity_xpath)
+            self.driver.find_element(By.XPATH, discount_quantity_xpath).click()
+            # Get the last line of table
+            attempt_check_can_clickable_by_xpath(f'{discount_quantity_xpath}//input')
+            col = self.driver.find_element(By.XPATH, f'{discount_quantity_xpath}//input')
+            col.send_keys(0)
+            col.send_keys(Keys.TAB)
 
             # Discount amount
             discount_amount_xpath = f'//table[@class="ms-table"]/tbody/tr[last()]/td[10]/div'

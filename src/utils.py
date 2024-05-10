@@ -106,6 +106,15 @@ def check_element_exist(element, type: By = By.XPATH, timeout=10):
         return False
 
 
+def check_element_not_exist(element: object, type: By = By.XPATH, timeout: object = 10) -> object:
+    try:
+        element_present = EC.invisibility_of_element((type, element))
+        WebDriverWait(AppConfig().chrome_driver, timeout).until(element_present)
+        return True
+    except TimeoutException:
+        return False
+
+
 def check_element_can_clickable(element, type: By = By.XPATH, timeout=10):
     try:
         element_present = EC.element_to_be_clickable((type, element))
@@ -181,5 +190,8 @@ def parse_time_to_vietnam_zone(date: str):
 
 
 def parse_time_to_GMT(date: str):
-    utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
-    return utc_time_format.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+        return utc_time_format.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception as e:
+        return None
