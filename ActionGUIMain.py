@@ -8,8 +8,8 @@ from PyQt5.uic.properties import QtCore
 import GUIDetail
 from DetailGUIMain import DetailGUIMain
 from GUIMain import Ui_MainWindow
-from src.Enums import SapoShop
-from src.Factory.OrderFactory import OrderAutoFactory
+from src.Enums import SapoShop, Channel
+from src.Factory.OrderFactory import OrderAutoFactory, OrderAPIFactory, OrderFactory
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
 from src.utils import set_default_if_none, get_current_date_time_to_midnight
@@ -28,7 +28,7 @@ class ActionMainGui(QMainWindow):
         self.add_default_value()
         self.add_action()
         self.show()
-        self.order_factory = OrderAutoFactory()
+        self.order_factory = None
         self.detail = DetailGUIMain()
         self.orders = []
         self.checkboxes = []
@@ -78,7 +78,7 @@ class ActionMainGui(QMainWindow):
         if list(filter(lambda o: o.sent_to_misa == True,self.orders)) == 0:
             QMessageBox.critical(self, 'Lỗi', 'Không tìm thầy hóa đơn. Bạn vui lòng nhập tìm lại', QMessageBox.Ok)
         else:
-            self.order_factory.submit_order(list(filter(lambda o: o.sent_to_misa == True,self.orders)))
+            self.order_factory.submit_order(list(filter(lambda o: o.sent_to_misa == True, self.orders)))
             QMessageBox.information(self, 'Thông báo', 'Đã thêm hóa đơn vào Misa!', QMessageBox.Ok)
 
     def action_click_search(self):
@@ -103,11 +103,15 @@ class ActionMainGui(QMainWindow):
                 order_request.orders = search_orders
 
             # Handle filter channel
+
             if self.main_gui.cbFilter.currentIndex() == 0:  # Sapo Thảo dược Giang
+                self.order_factory = OrderFactory.get_type_request(Channel.Auto)
                 order_method = self.order_factory.create_sapo_order(order_request, SapoShop.ThaoDuocGiang)
             elif self.main_gui.cbFilter.currentIndex() == 1:  # Sapo Quốc Cơ Quốc Nghiệp
+                self.order_factory = OrderFactory.get_type_request(Channel.Auto)
                 order_method = self.order_factory.create_sapo_order(order_request, SapoShop.QuocCoQuocNghiepShop)
             elif self.main_gui.cbFilter.currentIndex() == 2:  # Web
+                self.order_factory = OrderFactory.get_type_request(Channel.API)
                 order_method = self.order_factory.create_web_order(order_request)
             else:
                 QMessageBox.critical(self, 'Lỗi', 'Vui lòng chọn kênh', QMessageBox.Ok)

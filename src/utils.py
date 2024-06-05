@@ -195,3 +195,11 @@ def parse_time_to_GMT(date: str):
         return utc_time_format.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     except Exception as e:
         return None
+
+
+def parse_time_format_of_web(date: str):
+    try:
+        default_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+        return default_format.strftime("%m/%d/%Y")
+    except Exception as e:
+        return None

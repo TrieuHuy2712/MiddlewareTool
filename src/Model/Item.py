@@ -14,11 +14,11 @@ class CompositeItem:
     order_line_item_id: str = None
     original_quantity: int = None
     price: float = None
-    product_id: int = None
-    product_name: float = None
+    product_id: str = None
+    product_name: str = None
     product_type: str = None
     quantity: int = None
-    discount: int = None
+    discount: float = None
     sku: str = None
     unit: str = None
 
