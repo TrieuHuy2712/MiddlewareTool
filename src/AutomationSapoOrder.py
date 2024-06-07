@@ -254,7 +254,7 @@ class AutomationSapoOrder(SAPO):
         composite_items = self._fetch_composite_items(item.variant_id)
         for product in item.composite_item_domains:
             for sub_product in composite_items:
-                if product.product_id == sub_product["sub_product_id"]:
+                if str(product.product_id) == str(sub_product["sub_product_id"]):
                     self._update_product_from_sub_product(product, item, sub_product)
 
     def _fetch_composite_items(self, variant_id):

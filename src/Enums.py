@@ -11,6 +11,11 @@ class SearchType(Enum):
     SearchDateOrder = 2
 
 
-class Channel(Enum):
-    Auto = 0
+class Category(Enum):
+    AUTO = 0
     API = 1
+
+
+class Channel(Enum):
+    WEB = 0
+    SAPO = 1

@@ -8,7 +8,7 @@ from PyQt5.uic.properties import QtCore
 import GUIDetail
 from DetailGUIMain import DetailGUIMain
 from GUIMain import Ui_MainWindow
-from src.Enums import SapoShop, Channel
+from src.Enums import SapoShop, Category
 from src.Factory.OrderFactory import OrderAutoFactory, OrderAPIFactory, OrderFactory
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
@@ -105,13 +105,13 @@ class ActionMainGui(QMainWindow):
             # Handle filter channel
 
             if self.main_gui.cbFilter.currentIndex() == 0:  # Sapo Thảo dược Giang
-                self.order_factory = OrderFactory.get_type_request(Channel.Auto)
+                self.order_factory = OrderFactory.set_category_request(Category.AUTO)
                 order_method = self.order_factory.create_sapo_order(order_request, SapoShop.ThaoDuocGiang)
             elif self.main_gui.cbFilter.currentIndex() == 1:  # Sapo Quốc Cơ Quốc Nghiệp
-                self.order_factory = OrderFactory.get_type_request(Channel.Auto)
+                self.order_factory = OrderFactory.set_category_request(Category.AUTO)
                 order_method = self.order_factory.create_sapo_order(order_request, SapoShop.QuocCoQuocNghiepShop)
             elif self.main_gui.cbFilter.currentIndex() == 2:  # Web
-                self.order_factory = OrderFactory.get_type_request(Channel.API)
+                self.order_factory = OrderFactory.set_category_request(Category.API)
                 order_method = self.order_factory.create_web_order(order_request)
             else:
                 QMessageBox.critical(self, 'Lỗi', 'Vui lòng chọn kênh', QMessageBox.Ok)

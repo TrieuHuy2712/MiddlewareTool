@@ -43,7 +43,7 @@ class Item:
     lots_dates = []
     tax_type_id: str = None
     tax_rate_override: int = None
-    tax_amount: str = None
+    tax_amount: str = "0"
     discount_value: str = None # Giá chiết khấu
     discount_reason: str = None
     note: str = None

@@ -5,12 +5,13 @@ from src.APIWebOrder import APIWebOrder
 from src.AutomationMisaOrder import AutomationMisaOrder
 from src.AutomationSapoOrder import AutomationSapoOrder
 from src.AutomationWebOrder import AutomationWebOrder
-from src.Enums import SapoShop, Channel
+from src.Enums import SapoShop, Category
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
 
 
 class OrderFactory(ABC):
+
     @abstractmethod
     def create_web_order(self, order: OrderRequest):
         pass
@@ -24,14 +25,15 @@ class OrderFactory(ABC):
         auto_misa.send_orders_to_misa()
 
     @staticmethod
-    def get_type_request(request: Channel):
-        if request == Channel.Auto:
+    def set_category_request(request: Category):
+        if request == Category.AUTO:
             return OrderAutoFactory()
         else:
             return OrderAPIFactory()
 
 
 class OrderAutoFactory(OrderFactory):
+    # Channel : Web
     def create_web_order(self, order: OrderRequest):
         return AutomationWebOrder()
 

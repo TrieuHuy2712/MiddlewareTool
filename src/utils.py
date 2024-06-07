@@ -203,3 +203,13 @@ def parse_time_format_of_web(date: str):
         return default_format.strftime("%m/%d/%Y")
     except Exception as e:
         return None
+
+def is_format_of_web(date:  str):
+    try:
+        datetime.strptime(date, '%H:%M:%S - %d/%m/%Y')
+        return True
+    except ValueError:
+        return False
+
+def parse_time_format_webAPI(date: str):
+    return datetime.strptime(date, '%H:%M:%S - %d/%m/%Y')
