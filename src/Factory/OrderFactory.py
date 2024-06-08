@@ -5,7 +5,9 @@ from src.APIWebOrder import APIWebOrder
 from src.AutomationMisaOrder import AutomationMisaOrder
 from src.AutomationSapoOrder import AutomationSapoOrder
 from src.AutomationWebOrder import AutomationWebOrder
-from src.Enums import SapoShop, Category
+from src.Enums import SapoShop, Category, Channel
+from src.MISA_Implementation.AutomationMisaOrderFromSAPO import AutomationMisaOrderFromSAPO
+from src.MISA_Implementation.AutomationMisaOrderFromWEB import AutomationMisaOrderFromWEB
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
 
@@ -20,8 +22,13 @@ class OrderFactory(ABC):
     def create_sapo_order(self, order: OrderRequest, shop: SapoShop):
         pass
 
-    def submit_order(self, orders: List[Order]):
-        auto_misa = AutomationMisaOrder(orders=orders)
+    def submit_order(self, orders: List[Order], state_channel: Channel):
+        if state_channel == Channel.SAPO:
+            auto_misa = AutomationMisaOrderFromSAPO(orders=orders)
+        elif state_channel == Channel.WEB:
+            auto_misa = AutomationMisaOrderFromWEB(orders=orders)
+        else:
+            raise ValueError("Invalid method")
         auto_misa.send_orders_to_misa()
 
     @staticmethod

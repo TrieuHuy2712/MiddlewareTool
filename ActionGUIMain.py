@@ -8,7 +8,7 @@ from PyQt5.uic.properties import QtCore
 import GUIDetail
 from DetailGUIMain import DetailGUIMain
 from GUIMain import Ui_MainWindow
-from src.Enums import SapoShop, Category
+from src.Enums import SapoShop, Category, Channel
 from src.Factory.OrderFactory import OrderAutoFactory, OrderAPIFactory, OrderFactory
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
@@ -78,7 +78,10 @@ class ActionMainGui(QMainWindow):
         if list(filter(lambda o: o.sent_to_misa == True,self.orders)) == 0:
             QMessageBox.critical(self, 'Lỗi', 'Không tìm thầy hóa đơn. Bạn vui lòng nhập tìm lại', QMessageBox.Ok)
         else:
-            self.order_factory.submit_order(list(filter(lambda o: o.sent_to_misa == True, self.orders)))
+            if self.main_gui.cbFilter.currentIndex() == 2: # Submit at web
+                self.order_factory.submit_order(list(filter(lambda o: o.sent_to_misa == True, self.orders)), Channel.WEB)
+            else: # Submit at Sapo
+                self.order_factory.submit_order(list(filter(lambda o: o.sent_to_misa == True, self.orders)), Channel.SAPO)
             QMessageBox.information(self, 'Thông báo', 'Đã thêm hóa đơn vào Misa!', QMessageBox.Ok)
 
     def action_click_search(self):

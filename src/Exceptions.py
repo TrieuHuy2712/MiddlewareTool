@@ -17,3 +17,11 @@ class OrderError(Error):
 
     def __init__(self, message):
         self.message = message
+
+class ItemError(Error):
+    """
+    Data error where its not possible to proceed
+    """
+
+    def __init__(self, message):
+        self.message = message

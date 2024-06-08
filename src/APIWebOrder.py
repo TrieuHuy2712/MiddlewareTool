@@ -6,8 +6,10 @@ from typing import List
 import requests
 
 from src.Enums import SearchType
+from src.Exceptions import ItemError
 from src.IRetreiveOrder import Web
 from src.InputProduct import InputDetailProduct
+from src.Model.Item import CompositeItem
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
 from src.utils import set_up_logger, get_item_information, get_value_of_config, parse_time_format_of_web
@@ -26,7 +28,6 @@ class APIWebOrder(Web):
         self.cookies = self.authentication()
         self.meta_page = {}
         self.request_type = SearchType.SearchOrder
-
 
     def get_orders_by_search(self) -> List[Order]:
         self.request_type = SearchType.SearchOrder
@@ -114,22 +115,23 @@ class APIWebOrder(Web):
             order_line.distributed_discount_amount = 0
 
             # Check SKU of line_item not equal at first one of composite
-            if order_line.sku != order_line.composite_item_domains[0].sku:
-                order_line.is_composite = True
+            order_line.is_composite = True
 
             # Update base price from excel file
             for composite_item in order_line.composite_item_domains:
                 composite_item.quantity = int(composite_item.original_quantity) * int(order_line.quantity)
                 composite_item.unit = self.__get_product_details__(composite_item.sku).Unit
-                composite_item.discount = self.__calculate_discount__(sku=composite_item.sku,
-                                                                      sale_price=composite_item.price)
-                composite_item.price = self.__get_product_details__(composite_item.sku).Price_not_VAT
+                composite_item.discount = self.__calculate_discount_rate__(base_price=self.__get_base_price_by_sku(composite_item.sku),
+                                                                           sale_price=composite_item.price)
+                composite_item.price = self.__get_base_price_by_sku(composite_item.sku)
 
-                # Fomual calculat VAT After Applying Discount into Product
+                # Formula calculate VAT After Applying Discount into Product
                 # VATTax =  (BasePrice - (BasePrice * Discount /100))  * Quantity * 10%
                 tax_amount += (composite_item.price - (composite_item.price * float(composite_item.discount) / 100)) * composite_item.quantity * 0.1
 
             order_line.tax_amount = tax_amount
+            base_item_price = sum(float(composite_item.price)*composite_item.quantity for composite_item in order_line.composite_item_domains)
+            order_line.discount_rate = self.__calculate_discount_rate__(base_price=base_item_price, sale_price=order_line.price)
 
     def __get_product_information__(self):
         product_detail = sum([prod.Product for prod in self.item_information], [])
@@ -138,14 +140,16 @@ class APIWebOrder(Web):
     def __get_product_details__(self, sku) -> InputDetailProduct:
         try:
             return [item for item in self.products if item.Product_Id == sku][0]
-        except:
-            return None
+        except Exception:
+            raise ItemError(message=f"Cannot found sku {sku} from resource. Please check again.")
 
-    def __calculate_discount__(self, sku, sale_price):
-        base_price = float(self.__get_product_details__(sku).Price_not_VAT)
-        sale_price_before_VAT = float(sale_price) / 1.1
+    def __get_base_price_by_sku(self, sku) -> float:
+        return float(self.__get_product_details__(sku).Price_not_VAT)
 
-        return str(round((base_price - sale_price_before_VAT)/base_price * 100, 2))
+    @staticmethod
+    def __calculate_discount_rate__(base_price, sale_price):
+        sale_price_before_vat = float(sale_price) / 1.1
+        return str(round((base_price - sale_price_before_vat)/base_price * 100, 2))
 
 
 
