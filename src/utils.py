@@ -57,7 +57,7 @@ def get_value_of_config(config: str) -> str:
         return get_user_env(config)
     except KeyError:
         try:
-            with open('conf.yml', 'r') as f:
+            with open('conf.yml', 'r', encoding='utf-8') as f:
                 data = yaml.safe_load(f)
                 return data[config]
         except Exception as e:
