@@ -155,20 +155,19 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
         col.send_keys(sku)
         col.send_keys(Keys.TAB)
 
-        # Quantity
-        quantity_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[9]/div'
-        self._action_click_with_xpath_(quantity_xpath)
-        attempt_check_can_clickable_by_xpath(f'{quantity_xpath}//input')
-        col = self.driver.find_element(By.XPATH, f'{quantity_xpath}//input')
-        col.send_keys(quantity)
-        col.send_keys(Keys.TAB)
-
         # Warehouse
         warehouse_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[5]/div'
         self._action_click_with_xpath_(warehouse_xpath)
         attempt_check_can_clickable_by_xpath(f'{warehouse_xpath}//input')
         col = self.driver.find_element(By.XPATH, f'{warehouse_xpath}//input')
         col.send_keys(get_value_of_config("warehouse_id"))
+
+        # Quantity
+        quantity_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[9]/div'
+        self._action_click_with_xpath_(quantity_xpath)
+        attempt_check_can_clickable_by_xpath(f'{quantity_xpath}//input')
+        col = self.driver.find_element(By.XPATH, f'{quantity_xpath}//input')
+        col.send_keys(quantity)
         col.send_keys(Keys.TAB)
 
         # Check SKU is valid

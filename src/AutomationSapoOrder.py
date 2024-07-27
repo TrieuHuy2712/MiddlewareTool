@@ -39,6 +39,7 @@ class AutomationSapoOrder(SAPO):
         self.to_search_order = order.orders
         self.payment_methods = []
         self.item_information = get_item_information()
+        self.order_sources = []
 
     def get_orders_by_date(self) -> List[Order]:
         try:
@@ -50,6 +51,7 @@ class AutomationSapoOrder(SAPO):
             self.go_to_order_page()
             # Get payment method
             self.payment_methods = self.get_payment_methods()
+            self.order_sources = self.get_order_sources()
             self.filter_orders_date_time()
             for order in self.orders:
                 try:
@@ -76,6 +78,7 @@ class AutomationSapoOrder(SAPO):
             self.go_to_order_page()
             # Get payment method
             self.payment_methods = self.get_payment_methods()
+            self.order_sources = self.get_order_sources()
             is_empty_search = len(self.to_search_order) > 0
             self.filter_orders_date_time(is_available_search_order=is_empty_search)
             self.search_order()
@@ -96,6 +99,7 @@ class AutomationSapoOrder(SAPO):
             self.go_to_order_page()
             # Get payment method
             self.payment_methods = self.get_payment_methods()
+            self.order_sources = self.get_order_sources()
             self.search_order()
         except Exception as e:
             self.logging.critical(msg=f"[Search] Automation Sapo Order got error at get orders by search: {e}")
@@ -176,7 +180,8 @@ class AutomationSapoOrder(SAPO):
                                    f'&created_on_max={self.to_date}'
                                    f'&created_on_min={self.from_date}'
                                    f'&return_status=unreturned'
-                                   f'&source_id=6671550%2C6671547%2C6671556%2C6671548',
+                                   # f'&source_id=6671550,6671547,6671556,6671548',
+                                   f'&source_id={self.order_sources}',
                                    cookies=self.get_website_cookie())
         parse_json = json.loads(string_json.text)['orders']
         return [Order.from_dict(order) for order in parse_json]
@@ -188,6 +193,16 @@ class AutomationSapoOrder(SAPO):
                                    f'&created_on_max={self.to_date}'
                                    f'&created_on_min={self.from_date}', cookies=self.get_website_cookie())
         return json.loads(string_json.text)['metadata']
+
+    def get_order_sources(self):
+        string_json = requests.get(f'{self.domain}/admin/order_sources.json?query=&page=1'
+                                   f'&limit=100',
+                                   cookies=self.get_website_cookie())
+        order_sources = json.loads(string_json.text)['order_sources']
+        default_sources = get_value_of_config('order_sources').split(',')
+        id_sources = [str(sources.get("id")) for sources in order_sources if sources.get("name") in default_sources]
+        return ','.join(id_sources)
+
 
     def search_order(self):
         for order in self.to_search_order:

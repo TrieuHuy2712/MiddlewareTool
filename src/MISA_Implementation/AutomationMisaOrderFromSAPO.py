@@ -61,10 +61,10 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             for item in order.order_line_items:
                 if item.is_composite:
                     for it in item.composite_item_domains:
-                        self.__set_data_for_table(it.sku, it.quantity, item.discount_rate, current_row)
+                        self.__set_data_for_table(it.sku, it.quantity, item.discount_rate, current_row, order = order)
                         current_row += 1
                 else:
-                    self.__set_data_for_table(item.sku, item.quantity, item.discount_rate, current_row)
+                    self.__set_data_for_table(item.sku, item.quantity, item.discount_rate, current_row, order = order)
                     current_row += 1
 
             # Add commercial discount
@@ -111,7 +111,7 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed.")
             raise OrderError(message=f"Have error in create Misa warehouse. {e}")
 
-    def __set_data_for_table(self, sku, quantity, discount_rate, current_row):
+    def __set_data_for_table(self, sku, quantity, discount_rate, current_row, order: Order):
         # SKU Code
         sku_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[3]/div'
         self._action_click_with_xpath_(sku_xpath)
@@ -138,6 +138,25 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         col.send_keys(discount_rate)
         col.send_keys(Keys.TAB)
 
+        # Discount value
+        if order.source_name == 'Lazada':
+            # Get total money
+            total_money_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[10]//span'
+            total_money_value = float(self.driver.find_element(By.XPATH, total_money_xpath).text) * 1000
+
+            discount_value = round((total_money_value + total_money_value*0.1 - float(order.total))/1.1)
+
+            discount_value_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[12]/div'
+            attempt_check_can_clickable_by_xpath(discount_value_xpath)
+            self._action_click_with_xpath_(discount_value_xpath)
+            attempt_check_can_clickable_by_xpath(f'{discount_value_xpath}//input')
+            col = self.driver.find_element(By.XPATH, f'{discount_value_xpath}//input')
+            col.send_keys(Keys.BACKSPACE)
+            col.send_keys(Keys.DELETE)
+            col.send_keys(discount_value)
+            col.send_keys(Keys.TAB)
+
+
         # Check SKU is valid
         error_icon = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[3]//div[contains(@class,"cell-error-icon")]'
         if check_element_exist(error_icon):
@@ -159,20 +178,19 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         col.send_keys(sku)
         col.send_keys(Keys.TAB)
 
-        # Quantity
-        quantity_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[9]/div'
-        self._action_click_with_xpath_(quantity_xpath)
-        attempt_check_can_clickable_by_xpath(f'{quantity_xpath}//input')
-        col = self.driver.find_element(By.XPATH, f'{quantity_xpath}//input')
-        col.send_keys(quantity)
-        col.send_keys(Keys.TAB)
-
         # Warehouse
         warehouse_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[5]/div'
         self._action_click_with_xpath_(warehouse_xpath)
         attempt_check_can_clickable_by_xpath(f'{warehouse_xpath}//input')
         col = self.driver.find_element(By.XPATH, f'{warehouse_xpath}//input')
         col.send_keys(get_value_of_config("warehouse_id"))
+
+        # Quantity
+        quantity_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[9]/div'
+        self._action_click_with_xpath_(quantity_xpath)
+        attempt_check_can_clickable_by_xpath(f'{quantity_xpath}//input')
+        col = self.driver.find_element(By.XPATH, f'{quantity_xpath}//input')
+        col.send_keys(quantity)
         col.send_keys(Keys.TAB)
 
         # Check SKU is valid
