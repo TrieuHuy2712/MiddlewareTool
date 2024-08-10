@@ -20,10 +20,14 @@ class AutomationMisaOrder(ABC):
         self.driver = AppConfig().chrome_driver
         self.missing_orders = []
         self.handle_orders = []
+        self.attempt = 1
 
     @abstractmethod
     def send_orders_to_misa(self):
         pass
+
+    def _get_list_missing_orders(self) -> list[Order]:
+        return [o for o in self.orders if o.code not in self.handle_orders]
 
     def _escape_current_invoice(self):
         # Escape

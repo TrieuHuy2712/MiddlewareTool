@@ -23,23 +23,36 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
             self._authentication()
             self.driver.maximize_window()
             self._go_to_internal_accounting_data_page()
-            for order in self.orders:
-                try:
-                    self._go_to_sale_page()
-                    self.create_detail_invoice(order)
-                    self._go_to_warehouse_page()
-                    self.create_detail_warehouse_invoice(order)
-                    self.handle_orders.append(order.code) # Add infor handled orders
-                except OrderError as ex:
-                    self.logging.critical(msg=f"[Misa-WEB]Automation Misa Order {order.code} got error at : {ex}")
-                    self.missing_orders.append(order.code) # Add infor error orders
-                    self._open_website()
+            self.handler_create_list_invoice(self.orders)
+            self.logging.info(
+                msg=f"[Misa-Web] Missing orders in running: {','.join({o.code for o in self._get_list_missing_orders()})}")
+            self.logging.info(
+                msg=f"[Misa-Web] Retry for missing orders: {','.join({o.code for o in self._get_list_missing_orders()})}")
+
+            while len(self._get_list_missing_orders()) > 0 and self.attempt <= 10:
+                missing_orders = self._get_list_missing_orders()
+                self.logging.info(
+                    msg=f"[Misa-Sapo] Retry create missing order at {self.attempt}")
+                self.handler_create_list_invoice(missing_orders) # Retry missing orders
+                self.attempt = self.attempt + 1
         except Exception as e:
             self.logging.critical(msg=f"[Misa-WEB]Automation Misa Order got internal error at : {e}")
         finally:
-            self.logging.info(msg=f"[Misa-WEB] Missing orders in running: {','.join(order for order in self.missing_orders)}")
             self.logging.info(msg=f"[Misa-WEB] Not handle orders: {','.join(o.code for o in self.orders if o.code not in self.handle_orders)}")
             AppConfig().destroy_instance()
+
+    def handler_create_list_invoice(self, orders: list[Order]):
+        for order in orders:
+            try:
+                self._go_to_sale_page()
+                self.create_detail_invoice(order)
+                self._go_to_warehouse_page()
+                self.create_detail_warehouse_invoice(order)
+                self.handle_orders.append(order.code)  # Add infor handled orders
+            except OrderError as ex:
+                self.logging.critical(msg=f"[Misa-WEB]Automation Misa Order {order.code} got error at : {ex.message}")
+                self.missing_orders.append(order.code)  # Add infor error orders
+                self._open_website()
 
     def create_detail_invoice(self, order: Order):
         try:
@@ -89,11 +102,14 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
             add_line_button_xpath = '//div[normalize-space(text())="Thêm dòng"]/ancestor::button'
 
             for i in range(0, len(sku_quantity)):
-                self._action_click_with_xpath_(add_line_button_xpath)
+                attempt_check_exist_by_xpath(add_line_button_xpath)
                 time.sleep(2)
 
             current_row = 1
             for sku, quantity in sku_quantity.items():
+                if current_row > 1:
+                    self.driver.find_element(By.XPATH, add_line_button_xpath).click()
+                    time.sleep(2)
                 self.__set_warehouse_data_for_table(sku, quantity, current_row)
                 current_row += 1
 

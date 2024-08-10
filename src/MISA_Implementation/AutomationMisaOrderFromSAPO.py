@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 import pandas as pd
-from selenium.webdriver import Keys
+from selenium.webdriver import Keys, ActionChains
 from selenium.webdriver.common.by import By
 
 from src.AutomationMisaOrder import AutomationMisaOrder
@@ -12,7 +12,7 @@ from src.Model.Item import Item
 from src.Model.Order import Order
 from src.Singleton.AppConfig import AppConfig
 from src.utils import attempt_check_exist_by_xpath, get_value_of_config, attempt_check_can_clickable_by_xpath, \
-    check_element_exist, get_money_format
+    check_element_exist, get_money_format, convert_money_string_to_float_of_MISA
 
 list_added_items = []
 class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
@@ -22,23 +22,37 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             self._authentication()
             self.driver.maximize_window()
             self._go_to_internal_accounting_data_page()
-            for order in self.orders:
-                try:
-                    self._go_to_sale_page()
-                    self.create_detail_invoice(order)
-                    self._go_to_warehouse_page()
-                    self.create_detail_warehouse_invoice(order)
-                    self.handle_orders.append(order.code) # Add infor handled orders
-                except OrderError as ex:
-                    self.logging.critical(msg=f"[Misa-SAPO]Automation Misa Order {order.code} got error at : {ex}")
-                    self.missing_orders.append(order.code) # Add infor error orders
-                    self._open_website()
+            self.handler_create_list_invoice(self.orders)
+            self.logging.info(
+                msg=f"[Misa-SAPO] Missing orders in running: {','.join({o.code for o in self._get_list_missing_orders()})}")
+            self.logging.info(
+                msg=f"[Misa-SAPO] Retry for missing orders: {','.join({o.code for o in self._get_list_missing_orders()})}")
+
+            while len(self._get_list_missing_orders()) > 0 and self.attempt <= 10:
+                missing_orders = self._get_list_missing_orders()
+                self.logging.info(
+                    msg=f"[Misa-Sapo] Retry create missing order at {self.attempt}")
+                self.handler_create_list_invoice(missing_orders) # Retry missing orders
+                self.attempt = self.attempt + 1
+
         except Exception as e:
             self.logging.critical(msg=f"[Misa-SAPO]Automation Misa Order got internal error at : {e}")
         finally:
-            self.logging.info(msg=f"[Misa-SAPO] Missing orders in running: {','.join(order for order in self.missing_orders)}")
             self.logging.info(msg=f"[Misa-SAPO] Not handle orders: {','.join(o.code for o in self.orders if o.code not in self.handle_orders)}")
             AppConfig().destroy_instance()
+
+    def handler_create_list_invoice(self, orders: list[Order]):
+        for order in orders:
+            try:
+                self._go_to_sale_page()
+                self.create_detail_invoice(order)
+                self._go_to_warehouse_page()
+                self.create_detail_warehouse_invoice(order)
+                self.handle_orders.append(order.code)  # Add infor handled orders
+            except OrderError as ex:
+                self.logging.critical(msg=f"[Misa-SAPO]Automation Misa Order {order.code} got error at : {ex.message}")
+                self.missing_orders.append(order.code)  # Add infor error orders
+                self._open_website()
 
     def create_detail_invoice(self, order: Order):
         try:
@@ -61,10 +75,12 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             for item in order.order_line_items:
                 if item.is_composite:
                     for it in item.composite_item_domains:
-                        self.__set_data_for_table(it.sku, it.quantity, item.discount_rate, current_row, order = order)
+                        self.__set_data_for_table(it.sku, it.quantity, item.discount_rate, current_row, source_name=order.source_name, line_amount=item.price,
+                                                  default_item_quantity=item.quantity)
                         current_row += 1
                 else:
-                    self.__set_data_for_table(item.sku, item.quantity, item.discount_rate, current_row, order = order)
+                    self.__set_data_for_table(item.sku, item.quantity, item.discount_rate, current_row, source_name=order.source_name, line_amount=item.price,
+                                              default_item_quantity=item.quantity)
                     current_row += 1
 
             # Add commercial discount
@@ -92,11 +108,14 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             add_line_button_xpath = '//div[normalize-space(text())="Thêm dòng"]/ancestor::button'
 
             for i in range(0, len(sku_quantity)):
-                self._action_click_with_xpath_(add_line_button_xpath)
+                attempt_check_exist_by_xpath(add_line_button_xpath)
                 time.sleep(2)
 
             current_row = 1
             for sku, quantity in sku_quantity.items():
+                if current_row > 1:
+                    self.driver.find_element(By.XPATH, add_line_button_xpath).click()
+                    time.sleep(2)
                 self.__set_warehouse_data_for_table(sku, quantity, current_row)
                 current_row += 1
 
@@ -111,7 +130,10 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed.")
             raise OrderError(message=f"Have error in create Misa warehouse. {e}")
 
-    def __set_data_for_table(self, sku, quantity, discount_rate, current_row, order: Order):
+    def __set_data_for_table(self, sku, quantity, discount_rate, current_row, source_name, line_amount, default_item_quantity):
+
+        # Default item quantity là số lượng mua hàng mặc định KHÔNG có nhân cho số lượng sản phâm trong combo
+
         # SKU Code
         sku_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[3]/div'
         self._action_click_with_xpath_(sku_xpath)
@@ -119,7 +141,6 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         col = self.driver.find_element(By.XPATH, f'{sku_xpath}//input')
         col.send_keys(sku)
         list_added_items.append(sku) if sku not in list_added_items else time.sleep(10)
-        col.send_keys(Keys.TAB)
 
         # Quantity
         quantity_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[8]/div'
@@ -127,7 +148,6 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         attempt_check_can_clickable_by_xpath(f'{quantity_xpath}//input')
         col = self.driver.find_element(By.XPATH, f'{quantity_xpath}//input')
         col.send_keys(quantity)
-        col.send_keys(Keys.TAB)
 
         # Discount amount
         discount_amount_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[11]/div'
@@ -136,26 +156,27 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         attempt_check_can_clickable_by_xpath(f'{discount_amount_xpath}//input')
         col = self.driver.find_element(By.XPATH, f'{discount_amount_xpath}//input')
         col.send_keys(discount_rate)
-        col.send_keys(Keys.TAB)
 
-        # Discount value
-        if order.source_name == 'Lazada':
-            # Get total money
+        # Discount PERCENTAGE value
+        if source_name == 'Lazada' or source_name == 'Tiki':
+
+            # Get total money - Thành tiền
             total_money_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[10]//span'
-            total_money_value = float(self.driver.find_element(By.XPATH, total_money_xpath).text) * 1000
+            total_money_value = convert_money_string_to_float_of_MISA(self.driver.find_element(By.XPATH, total_money_xpath).text)
+            discount_value = round((total_money_value - float(line_amount)*default_item_quantity/1.1)/total_money_value,3)
 
-            discount_value = round((total_money_value + total_money_value*0.1 - float(order.total))/1.1)
-
-            discount_value_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[12]/div'
+            # % Chiết khấu
+            discount_value_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[11]/div'
             attempt_check_can_clickable_by_xpath(discount_value_xpath)
             self._action_click_with_xpath_(discount_value_xpath)
             attempt_check_can_clickable_by_xpath(f'{discount_value_xpath}//input')
             col = self.driver.find_element(By.XPATH, f'{discount_value_xpath}//input')
-            col.send_keys(Keys.BACKSPACE)
-            col.send_keys(Keys.DELETE)
-            col.send_keys(discount_value)
-            col.send_keys(Keys.TAB)
-
+            # col.send_keys(Keys.BACKSPACE)
+            # col.send_keys(Keys.DELETE)
+            actions = ActionChains(self.driver)
+            actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+            actions.send_keys(Keys.DELETE)
+            col.send_keys(discount_value*100)
 
         # Check SKU is valid
         error_icon = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[3]//div[contains(@class,"cell-error-icon")]'

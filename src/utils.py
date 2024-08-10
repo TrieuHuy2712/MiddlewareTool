@@ -204,12 +204,19 @@ def parse_time_format_of_web(date: str):
     except Exception as e:
         return None
 
-def is_format_of_web(date:  str):
+
+def is_format_of_web(date: str):
     try:
         datetime.strptime(date, '%H:%M:%S - %d/%m/%Y')
         return True
     except ValueError:
         return False
 
+
 def parse_time_format_webAPI(date: str):
     return datetime.strptime(date, '%H:%M:%S - %d/%m/%Y')
+
+
+def convert_money_string_to_float_of_MISA(string_money: str):
+    string_number = string_money.replace(".", "")
+    return float(string_number)
