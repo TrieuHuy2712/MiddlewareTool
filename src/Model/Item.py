@@ -14,11 +14,11 @@ class CompositeItem:
     order_line_item_id: str = None
     original_quantity: int = None
     price: float = None
-    product_id: int = None
-    product_name: float = None
+    product_id: str = None
+    product_name: str = None
     product_type: str = None
     quantity: int = None
-    discount: int = None
+    discount: float = None
     sku: str = None
     unit: str = None
 
@@ -43,7 +43,7 @@ class Item:
     lots_dates = []
     tax_type_id: str = None
     tax_rate_override: int = None
-    tax_amount: str = None
+    tax_amount: str = "0"
     discount_value: str = None # Giá chiết khấu
     discount_reason: str = None
     note: str = None

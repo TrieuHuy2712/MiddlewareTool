@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem
 
 import GUIDetail
 from src.Model.Order import Order
-from src.utils import get_money_format
+from src.utils import get_money_format, is_format_of_web, parse_time_format_webAPI
 
 
 class DetailGUIMain(QtWidgets.QMainWindow):
@@ -37,7 +37,10 @@ class DetailGUIMain(QtWidgets.QMainWindow):
         # Total Payment
         self.detail_gui.lbTotalPayment_2.setText(get_money_format(float(order.total)))
 
-        created_date = datetime.strptime(order.created_on, '%Y-%m-%dT%H:%M:%SZ')
+        if is_format_of_web(order.created_on):
+            created_date = parse_time_format_webAPI(order.created_on)
+        else:
+            created_date = datetime.strptime(order.created_on, '%Y-%m-%dT%H:%M:%SZ')
 
         current_row = 0
         self.detail_gui.tableWidget.setRowCount(len(order.order_line_items)+5)

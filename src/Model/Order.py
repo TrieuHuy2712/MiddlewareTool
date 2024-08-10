@@ -30,13 +30,13 @@ class Order:
     tax_treatment: str = None
     status: str
     packed_status: str = None
-    fulfillment_status: str
-    received_status: str
-    payment_status: str
-    return_status: str
-    phone_number: str
-    total_discount: str
-    total_tax: str
+    fulfillment_status: str = None
+    received_status: str = None
+    payment_status: str = None
+    return_status: str = None
+    phone_number: str = None
+    total_discount: str = None
+    total_tax: str = None
     discount_items: List[DiscountItem] = None
     order_line_items: List[Item] = None
     contact_id: str = None

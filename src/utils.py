@@ -57,7 +57,7 @@ def get_value_of_config(config: str) -> str:
         return get_user_env(config)
     except KeyError:
         try:
-            with open('conf.yml', 'r') as f:
+            with open('conf.yml', 'r', encoding='utf-8') as f:
                 data = yaml.safe_load(f)
                 return data[config]
         except Exception as e:
@@ -100,6 +100,15 @@ def attempt_check_can_clickable_by_xpath(xpath, max_attempt=5):
 def check_element_exist(element, type: By = By.XPATH, timeout=10):
     try:
         element_present = EC.presence_of_element_located((type, element))
+        WebDriverWait(AppConfig().chrome_driver, timeout).until(element_present)
+        return True
+    except TimeoutException:
+        return False
+
+
+def check_element_not_exist(element: object, type: By = By.XPATH, timeout: object = 10) -> object:
+    try:
+        element_present = EC.invisibility_of_element((type, element))
         WebDriverWait(AppConfig().chrome_driver, timeout).until(element_present)
         return True
     except TimeoutException:
@@ -181,5 +190,33 @@ def parse_time_to_vietnam_zone(date: str):
 
 
 def parse_time_to_GMT(date: str):
-    utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
-    return utc_time_format.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        utc_time_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+        return utc_time_format.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception as e:
+        return None
+
+
+def parse_time_format_of_web(date: str):
+    try:
+        default_format = datetime.strptime(date, '%Y-%m-%dT%H:%M:%SZ')
+        return default_format.strftime("%m/%d/%Y")
+    except Exception as e:
+        return None
+
+
+def is_format_of_web(date: str):
+    try:
+        datetime.strptime(date, '%H:%M:%S - %d/%m/%Y')
+        return True
+    except ValueError:
+        return False
+
+
+def parse_time_format_webAPI(date: str):
+    return datetime.strptime(date, '%H:%M:%S - %d/%m/%Y')
+
+
+def convert_money_string_to_float_of_MISA(string_money: str):
+    string_number = string_money.replace(".", "")
+    return float(string_number)
