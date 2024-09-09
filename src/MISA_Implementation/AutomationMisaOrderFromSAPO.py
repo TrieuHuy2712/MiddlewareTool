@@ -28,7 +28,7 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             self.logging.info(
                 msg=f"[Misa-SAPO] Retry for missing orders: {','.join({o.code for o in self._get_list_missing_orders()})}")
 
-            while len(self._get_list_missing_orders()) > 0 and self.attempt <= 10:
+            while len(self._get_list_missing_orders()) > 0 and self.attempt <= 4:
                 missing_orders = self._get_list_missing_orders()
                 self.logging.info(
                     msg=f"[Misa-Sapo] Retry create missing order at {self.attempt}")
