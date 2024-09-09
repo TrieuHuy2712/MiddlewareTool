@@ -108,30 +108,33 @@ class APIWebOrder(Web):
         return result
 
     def __update_order_information__(self, order: Order):
-        for order_line in order.order_line_items:
-            tax_amount = 0
-            order_line.price = self.__remove_letters_and_spaces__(order_line.price)
-            order_line.discount_amount = 0
-            order_line.distributed_discount_amount = 0
+        try:
+            for order_line in order.order_line_items:
+                tax_amount = 0
+                order_line.price = self.__remove_letters_and_spaces__(order_line.price)
+                order_line.discount_amount = 0
+                order_line.distributed_discount_amount = 0
 
-            # Check SKU of line_item not equal at first one of composite
-            order_line.is_composite = True
+                # Check SKU of line_item not equal at first one of composite
+                order_line.is_composite = True
 
-            # Update base price from excel file
-            for composite_item in order_line.composite_item_domains:
-                composite_item.quantity = int(composite_item.original_quantity) * int(order_line.quantity)
-                composite_item.unit = self.__get_product_details__(composite_item.sku).Unit
-                composite_item.discount = self.__calculate_discount_rate__(base_price=self.__get_base_price_by_sku(composite_item.sku),
-                                                                           sale_price=composite_item.price)
-                composite_item.price = self.__get_base_price_by_sku(composite_item.sku)
+                # Update base price from excel file
+                for composite_item in order_line.composite_item_domains:
+                    composite_item.quantity = int(order_line.quantity) if composite_item.sku == order_line.sku else int(composite_item.original_quantity) * int(order_line.quantity)
+                    composite_item.unit = self.__get_product_details__(composite_item.sku).Unit
+                    composite_item.discount = self.__calculate_discount_rate__(base_price=self.__get_base_price_by_sku(composite_item.sku),
+                                                                               sale_price=composite_item.price)
+                    composite_item.price = self.__get_base_price_by_sku(composite_item.sku)
 
-                # Formula calculate VAT After Applying Discount into Product
-                # VATTax =  (BasePrice - (BasePrice * Discount /100))  * Quantity * 10%
-                tax_amount += (composite_item.price - (composite_item.price * float(composite_item.discount) / 100)) * composite_item.quantity * 0.1
+                    # Formula calculate VAT After Applying Discount into Product
+                    # VATTax =  (BasePrice - (BasePrice * Discount /100))  * Quantity * 10%
+                    tax_amount += (composite_item.price - (composite_item.price * float(composite_item.discount) / 100)) * composite_item.quantity * 0.1
 
-            order_line.tax_amount = tax_amount
-            base_item_price = sum(float(composite_item.price)*composite_item.quantity for composite_item in order_line.composite_item_domains)
-            order_line.discount_rate = self.__calculate_discount_rate__(base_price=base_item_price, sale_price=order_line.price)
+                order_line.tax_amount = tax_amount
+                base_item_price = sum(float(composite_item.price)*composite_item.quantity for composite_item in order_line.composite_item_domains)
+                order_line.discount_rate = self.__calculate_discount_rate__(base_price=base_item_price, sale_price=order_line.price)
+        except Exception as e:
+            self.logging.error(msg=f"Cannot update order information of order {order.code} with detail {order} at error {e}")
 
     def __get_product_information__(self):
         product_detail = sum([prod.Product for prod in self.item_information], [])
