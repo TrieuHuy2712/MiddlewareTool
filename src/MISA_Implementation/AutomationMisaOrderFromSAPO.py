@@ -158,7 +158,7 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         col.send_keys(discount_rate)
 
         # Discount PERCENTAGE value
-        if source_name == 'Lazada' or source_name == 'Tiki':
+        if source_name == 'Lazada' or source_name == 'Tiki' or source_name == 'TiktokShop':
 
             # Get total money - Thành tiền
             total_money_xpath = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[10]//span'
