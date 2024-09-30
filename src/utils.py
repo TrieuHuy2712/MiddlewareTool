@@ -162,9 +162,10 @@ def get_item_information() -> list[InputProduct]:
         for i in range(len(value["PRODUCT_ID"])):
             product = {
                 "Product_Id": value["PRODUCT_ID"][i],
+                "Product_Title": value["PRODUCT_TITLE"][i],
                 "Product_Name": value["PRODUCT_NAME"][i],
                 "Product_Quantity": value["PRODUCT_QUANTITY"][i],
-                "Unit": value["UNIT "][i].strip(),
+                "Unit": value["UNIT"][i].strip(),
                 "Price_not_VAT": value["PRICE_NOT_VAT"][i]
             }
             products.append(product)

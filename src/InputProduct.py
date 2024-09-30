@@ -6,6 +6,7 @@ from dataclasses_json import dataclass_json
 @dataclass
 class InputDetailProduct:
     Product_Id: str
+    Product_Title: str
     Product_Name: str
     Product_Quantity: int
     Unit: str

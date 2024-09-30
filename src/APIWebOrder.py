@@ -120,11 +120,12 @@ class APIWebOrder(Web):
 
                 # Update base price from excel file
                 for composite_item in order_line.composite_item_domains:
-                    composite_item.quantity = int(composite_item.original_quantity) * int(order_line.quantity)
+                    composite_item.quantity = int(order_line.quantity) if order_line.sku == composite_item.sku else int(composite_item.original_quantity) * int(order_line.quantity)
                     composite_item.unit = self.__get_product_details__(composite_item.sku).Unit
                     composite_item.discount = self.__calculate_discount_rate__(base_price=self.__get_base_price_by_sku(composite_item.sku),
                                                                                sale_price=composite_item.price)
                     composite_item.price = self.__get_base_price_by_sku(composite_item.sku)
+                    composite_item.sku = self.__get_product_details__(composite_item.sku).Product_Title
 
                     # Formula calculate VAT After Applying Discount into Product
                     # VATTax =  (BasePrice - (BasePrice * Discount /100))  * Quantity * 10%

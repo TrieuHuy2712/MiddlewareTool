@@ -198,7 +198,7 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
         note_button_xpath = '//div[normalize-space(text())="Thêm ghi chú"]/parent::button'
 
         # Company discount amount
-        if sum(float(item.discount_rate) for item in order.order_line_items) > 0:
+        if sum(float(item.discount_rate) for item in order.order_line_items) > 0 and created_date.month != 9:
             # Click add new note line in the table
             self._action_click_with_xpath_(note_button_xpath)
 
