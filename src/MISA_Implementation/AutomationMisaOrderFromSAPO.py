@@ -12,7 +12,7 @@ from src.Model.Item import Item
 from src.Model.Order import Order
 from src.Singleton.AppConfig import AppConfig
 from src.utils import attempt_check_exist_by_xpath, get_value_of_config, attempt_check_can_clickable_by_xpath, \
-    check_element_exist, get_money_format, convert_money_string_to_float_of_MISA
+    check_element_exist, get_money_format, convert_money_string_to_float_of_MISA, string_to_float
 
 list_added_items = []
 class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
@@ -176,7 +176,7 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             actions = ActionChains(self.driver)
             actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
             actions.send_keys(Keys.DELETE)
-            col.send_keys(discount_value*100)
+            col.send_keys(discount_value*100 + string_to_float(discount_rate))
 
         # Check SKU is valid
         error_icon = f'//table[@class="ms-table"]/tbody/tr[{current_row}]/td[3]//div[contains(@class,"cell-error-icon")]'

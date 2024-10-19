@@ -221,3 +221,11 @@ def parse_time_format_webAPI(date: str):
 def convert_money_string_to_float_of_MISA(string_money: str):
     string_number = string_money.replace(".", "")
     return float(string_number)
+
+def string_to_float(value):
+    try:
+        # Attempt to convert the string to a float
+        return float(value)
+    except (ValueError, TypeError):
+        # Return the default value 0.0 in case of an exception
+        return 0.0
