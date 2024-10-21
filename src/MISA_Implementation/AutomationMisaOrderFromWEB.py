@@ -197,21 +197,6 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
         created_date = parse_time_format_webAPI(order.created_on)
         note_button_xpath = '//div[normalize-space(text())="Thêm ghi chú"]/parent::button'
 
-        # Company discount amount
-        if sum(float(item.discount_rate) for item in order.order_line_items) > 0 and created_date.month != 9:
-            # Click add new note line in the table
-            self._action_click_with_xpath_(note_button_xpath)
-
-            company_discount_note_xpath = f'//table[@class="ms-table"]/tbody/tr[last()]/td[4]/div'
-            self._action_click_with_xpath_(company_discount_note_xpath)
-
-            # Get the last line of table
-            attempt_check_can_clickable_by_xpath(f'{company_discount_note_xpath}//input')
-            col = self.driver.find_element(By.XPATH, f'{company_discount_note_xpath}//input')
-            col.send_keys(f"Khuyến mãi của công ty theo chương trình khuyến mãi "
-                          f"{created_date.month}/{created_date.year} "
-                          f"trên website giangs.vn")
-
         # Click add new note line in the table
         self._action_click_with_xpath_(note_button_xpath)
         note_xpath = f'//table[@class="ms-table"]/tbody/tr[last()]/td[4]/div'
