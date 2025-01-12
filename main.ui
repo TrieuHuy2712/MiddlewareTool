@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>795</width>
-    <height>506</height>
+    <width>797</width>
+    <height>513</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -267,7 +267,7 @@
                <height>20</height>
               </size>
              </property>
-             <property name="placeholderText">
+             <property name="placeholderText" stdset="0">
               <string>Kênh hóa đơn</string>
              </property>
             </widget>
@@ -295,19 +295,37 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="cbSelectAll">
-         <property name="text">
-          <string>Chọn tất cả</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="cbSelectAll">
+           <property name="text">
+            <string>Chọn tất cả</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Loại hóa đơn</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cbSelectOrder"/>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QTableWidget" name="tableWidget"/>
        </item>
-       <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <item alignment="Qt::AlignHCenter">
         <widget class="QPushButton" name="btnSubmit">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -317,6 +335,9 @@
            <width>100</width>
            <height>20</height>
           </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
          </property>
          <property name="text">
           <string>Gửi đến Misa</string>

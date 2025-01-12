@@ -9,7 +9,7 @@ from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 
-from src.Enums import SapoShop
+from src.Enums import SapoShop, OrderStatus
 from src.IRetreiveOrder import SAPO
 from src.Model.Item import Item, CompositeItem
 from src.Model.Order import Order
@@ -40,6 +40,7 @@ class AutomationSapoOrder(SAPO):
         self.payment_methods = []
         self.item_information = get_item_information()
         self.order_sources = []
+        self.order_status = order.status
 
     def get_orders_by_date(self) -> List[Order]:
         try:
@@ -174,9 +175,11 @@ class AutomationSapoOrder(SAPO):
                 self.to_search_order = list(set(self.to_search_order) & set(list_current_orders))
 
     def get_list_order_from_page(self, page):
+        command_status = "&composite_fulfillment_status=fulfilled" if self.order_status == OrderStatus.SHIPPING \
+                            else "&status=completed"
         string_json = requests.get(f'{self.domain}/admin/orders.json?page={page}'
                                    f'&limit=100'
-                                   f'&composite_fulfillment_status=fulfilled'
+                                   f'{command_status}'
                                    f'&created_on_max={self.to_date}'
                                    f'&created_on_min={self.from_date}'
                                    f'&return_status=unreturned'
@@ -187,9 +190,11 @@ class AutomationSapoOrder(SAPO):
         return [Order.from_dict(order) for order in parse_json]
 
     def get_meta_order_from_page(self):
+        command_status = "&composite_fulfillment_status=fulfilled" if self.order_status == OrderStatus.SHIPPING \
+            else "&status=completed"
         string_json = requests.get(f'{self.domain}/admin/orders.json?page=1'
                                    f'&limit=100'
-                                   f'&composite_fulfillment_status=fulfilled'
+                                   f'{command_status}'
                                    f'&created_on_max={self.to_date}'
                                    f'&created_on_min={self.from_date}', cookies=self.get_website_cookie())
         return json.loads(string_json.text)['metadata']

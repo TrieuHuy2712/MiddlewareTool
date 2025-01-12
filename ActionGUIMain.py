@@ -8,7 +8,7 @@ from PyQt5.uic.properties import QtCore
 import GUIDetail
 from DetailGUIMain import DetailGUIMain
 from GUIMain import Ui_MainWindow
-from src.Enums import SapoShop, Category, Channel
+from src.Enums import SapoShop, Category, Channel, OrderStatus
 from src.Factory.OrderFactory import OrderAutoFactory, OrderAPIFactory, OrderFactory
 from src.Model.Order import Order
 from src.OrderRequest import OrderRequest
@@ -25,6 +25,7 @@ class ActionMainGui(QMainWindow):
         self.main_gui = Ui_MainWindow()
         self.main_gui.setupUi(self)
         self.list_items = ["Sapo - Shop thảo dược Giang", "Sapo - Quốc Cơ Quốc Nghiệp", "Web"]
+        self.list_orders_items = ["Đang giao hàng", "Đã hoàn thành"]
         self.add_default_value()
         self.add_action()
         self.show()
@@ -42,6 +43,7 @@ class ActionMainGui(QMainWindow):
         self.main_gui.cbFilter.addItems(self.list_items)
         self.main_gui.cbFilter.setEditable(True)
         self.main_gui.cbFilter.lineEdit().setPlaceholderText("---Vui lòng chọn kênh---")
+        self.main_gui.cbSelectOrder.addItems(self.list_orders_items)
         table_headers = ["", "Mã hóa đơn", "Thông tin khách hàng", "Ngày tạo", "Giá", "Nguồn", "Chi tiết"]
         self.main_gui.tableWidget.setColumnCount(len(table_headers))
         self.main_gui.tableWidget.setHorizontalHeaderLabels(table_headers)
@@ -97,6 +99,7 @@ class ActionMainGui(QMainWindow):
 
             # Prepare the order request
             order_request = OrderRequest()
+            order_request.status = OrderStatus.SHIPPING if self.main_gui.cbSelectOrder.currentIndex() == OrderStatus.SHIPPING.value else OrderStatus.COMPLETE
 
             # Handle search type and prepare request
             if self.main_gui.cbSearchType.currentIndex() == 0 or self.main_gui.cbSearchType.currentIndex() == 2:

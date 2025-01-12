@@ -19,3 +19,7 @@ class Category(Enum):
 class Channel(Enum):
     WEB = 0
     SAPO = 1
+
+class OrderStatus(Enum):
+    SHIPPING = 0
+    COMPLETE = 1
