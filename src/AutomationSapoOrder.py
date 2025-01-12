@@ -176,7 +176,7 @@ class AutomationSapoOrder(SAPO):
     def get_list_order_from_page(self, page):
         string_json = requests.get(f'{self.domain}/admin/orders.json?page={page}'
                                    f'&limit=100'
-                                   f'&status=completed'
+                                   f'&composite_fulfillment_status=fulfilled'
                                    f'&created_on_max={self.to_date}'
                                    f'&created_on_min={self.from_date}'
                                    f'&return_status=unreturned'
@@ -189,7 +189,7 @@ class AutomationSapoOrder(SAPO):
     def get_meta_order_from_page(self):
         string_json = requests.get(f'{self.domain}/admin/orders.json?page=1'
                                    f'&limit=100'
-                                   f'&status=completed'
+                                   f'&composite_fulfillment_status=fulfilled'
                                    f'&created_on_max={self.to_date}'
                                    f'&created_on_min={self.from_date}', cookies=self.get_website_cookie())
         return json.loads(string_json.text)['metadata']

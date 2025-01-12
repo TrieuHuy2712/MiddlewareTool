@@ -222,6 +222,7 @@ def convert_money_string_to_float_of_MISA(string_money: str):
     string_number = string_money.replace(".", "")
     return float(string_number)
 
+
 def string_to_float(value):
     try:
         # Attempt to convert the string to a float
@@ -229,3 +230,7 @@ def string_to_float(value):
     except (ValueError, TypeError):
         # Return the default value 0.0 in case of an exception
         return 0.0
+
+
+def check_float(value: float):
+    return str(int(value)) if value.is_integer() else value
