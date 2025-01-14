@@ -93,7 +93,7 @@ class AutomationMisaOrder(ABC):
         self.driver.find_element(By.XPATH, password_xpath).send_keys(get_value_of_config("misa_password"))
 
         # Click login button
-        button_xpath = '//div[@objname="jBtnLogin"]'
+        button_xpath = '//button[@objname="jBtnLogin"]'
         attempt_check_can_clickable_by_xpath(button_xpath)
         self.driver.find_element(By.XPATH, button_xpath).click()
 
