@@ -224,7 +224,7 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             raise OrderError(message=f"[Misa] Cannot found the Product {request_table.sku} in the system.")
 
         # Promotion
-        if request_table.discount_rate == "100.0":
+        if request_table.discount_rate == "100.0" or request_table.price == '0':
             promotion_button_xpath = f'//table[@class="ms-table"]/tbody/tr[{request_table.current_row}]/td[5]/div'
             self._action_click_with_xpath_(promotion_button_xpath)
 

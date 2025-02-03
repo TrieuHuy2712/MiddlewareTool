@@ -30,6 +30,11 @@ class AutomationMisaOrder(ABC):
         return [o for o in self.orders if o.code not in self.handle_orders]
 
     def _escape_current_invoice(self):
+        # Check balance modal
+        if not check_element_not_exist('//span[contains(@id, "idMessage") and contains(text(), "Tổng tiền thuế GTGT")]', timeout=30):
+            yes_button_xpath = '//span[contains(@id, "idMessage") and contains(text(), "Tổng tiền thuế GTGT")]/ancestor::div[@class="ms-message-box--content"]/div[@class="mess-footer"]//button/div[contains(text(),"Có")]'
+            self.driver.find_element(By.XPATH, yes_button_xpath).click()
+
         # Escape
         attempt_check_can_clickable_by_xpath('//div[contains(@class,"close-btn header")]')
         self.driver.find_element(By.XPATH, '//div[contains(@class,"close-btn header")]').click()
