@@ -46,7 +46,7 @@ class AutomationMisaOrder(ABC):
                                        , driver=driver):
             yes_button_xpath = ('//span[contains(@id, "idMessage") and contains(text(), "Tổng tiền thuế GTGT")]'
                                 '/ancestor::div[@class="ms-message-box--content"]/div[@class="mess-footer"]'
-                                '//button/div[contains(text(),"Có")]')
+                                '//button/div[contains(text(),"Không")]')
             driver.find_element(By.XPATH, yes_button_xpath).click()
 
         # Escape
