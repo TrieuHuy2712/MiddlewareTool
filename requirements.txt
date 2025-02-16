@@ -12,3 +12,4 @@ PyInstaller~=6.6.0
 pywin32
 pytz~=2024.1
 requests~=2.31.0
+numpy~=1.22.0

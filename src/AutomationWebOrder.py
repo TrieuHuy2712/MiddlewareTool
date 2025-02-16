@@ -19,7 +19,7 @@ from src.utils import set_up_logger, get_value_of_config, attempt_check_exist_by
 
 class AutomationWebOrder(Web):
     def __init__(self):
-        self.driver = AppConfig().chrome_driver
+        self.driver = AppConfig().get_chrome_driver()
         self.is_processed = False
         self.logging = set_up_logger("Middleware_Tool")
         self.orders = []
@@ -73,14 +73,14 @@ class AutomationWebOrder(Web):
 
         # Searching
         search_input_xpath = '//*[@id="m_form_search"]'
-        attempt_check_exist_by_xpath(search_input_xpath)
+        attempt_check_exist_by_xpath(search_input_xpath, driver=self.driver)
 
         search_input = self.driver.find_element(By.XPATH, search_input_xpath)
         search_input.send_keys(order)
         search_input.send_keys(Keys.F9)
 
         order_xpath = '//table[@id="m-datatable-list"]/tbody/tr/td[@data-field="uid"]/span/a'
-        attempt_check_can_clickable_by_xpath(order_xpath)
+        attempt_check_can_clickable_by_xpath(order_xpath, driver=self.driver)
         self.driver.find_element(By.XPATH, order_xpath).click()
         self.get_order_json()
 
@@ -92,7 +92,7 @@ class AutomationWebOrder(Web):
 
         # Go to update button
         update_btn_xpath = '//button/i[contains(.,"Sửa")]'
-        attempt_check_can_clickable_by_xpath(update_btn_xpath)
+        attempt_check_can_clickable_by_xpath(update_btn_xpath, driver=self.driver)
         self.driver.find_element(By.XPATH, update_btn_xpath).click()
 
         # Payment
@@ -172,7 +172,7 @@ class AutomationWebOrder(Web):
             # Check combo
             self.search_detail_item(order_item.product_name)
             combo_tag = f'//table[@id="m-datatable-list"]/tbody/tr/td/span/a[contains(.,"Edit Combo")]'
-            if check_element_exist(combo_tag, By.XPATH):
+            if check_element_exist(combo_tag, By.XPATH, driver=self.driver):
                 self.driver.find_element(By.XPATH, combo_tag).click()
                 order_item.composite_item_domains = self.get_composite_item()
 
@@ -185,7 +185,7 @@ class AutomationWebOrder(Web):
         self.search_detail_item(product_name)
         self.click_to_detail_page(product_name)
         sku_xpath = '//*[@id="sku"]'
-        attempt_check_exist_by_xpath(sku_xpath)
+        attempt_check_exist_by_xpath(sku_xpath, driver=self.driver)
         return self.driver.find_element(By.XPATH, sku_xpath).get_attribute('value')
 
     def search_detail_item(self, product_name):
@@ -193,19 +193,19 @@ class AutomationWebOrder(Web):
         self.driver.get(f'{get_value_of_config("website_url")}/product/')
         # Searching
         search_item_xpath = '//*[@id="m_form_search"]'
-        attempt_check_exist_by_xpath(search_item_xpath)
+        attempt_check_exist_by_xpath(search_item_xpath, driver=self.driver)
 
         search_input = self.driver.find_element(By.XPATH, search_item_xpath)
         search_input.send_keys(product_name)
 
         # Search item from product page
         search_button_xpath = '//*[@id="search_item"]'
-        attempt_check_can_clickable_by_xpath(search_button_xpath)
+        attempt_check_can_clickable_by_xpath(search_button_xpath, driver=self.driver)
         self.driver.find_element(By.XPATH, search_button_xpath).click()
 
     def click_to_detail_page(self, product_name):
         item_xpath = f'//table[@id="m-datatable-list"]/tbody/tr/td/span/a[contains(.,"{product_name}")]'
-        attempt_check_can_clickable_by_xpath(item_xpath)
+        attempt_check_can_clickable_by_xpath(item_xpath, driver=self.driver)
         self.driver.find_element(By.XPATH, item_xpath).click()
 
     def get_composite_item(self) -> List[CompositeItem]:

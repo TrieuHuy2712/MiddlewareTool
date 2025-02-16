@@ -30,7 +30,7 @@ def _update_product_with_sub_product(product, item, sub_product):
 class AutomationSapoOrder(SAPO):
 
     def __init__(self, order: OrderRequest, shop: SapoShop):
-        self.driver = AppConfig().chrome_driver
+        self.driver = AppConfig().get_chrome_driver()
         self.logging = set_up_logger("Middleware_Tool")
         self.domain = self.get_domain(shop)
         self.orders = []
@@ -110,16 +110,16 @@ class AutomationSapoOrder(SAPO):
 
     def go_to_order_page(self):
         sale_order = '//span[text()="Đơn hàng"]'
-        check_element_can_clickable(sale_order, By.XPATH)
+        check_element_can_clickable(sale_order, By.XPATH, driver=self.driver)
         self.driver.find_element(By.XPATH, sale_order).click()
 
         admin_order = '//a[@href="/admin/orders"]'
-        check_element_can_clickable(admin_order, By.XPATH)
+        check_element_can_clickable(admin_order, By.XPATH, driver=self.driver)
         self.driver.find_element(By.XPATH, admin_order).click()
 
     def handle_windows(self):
         sale_order = '//span[text()="Đơn hàng"]'
-        check_element_can_clickable(sale_order, By.XPATH)
+        check_element_can_clickable(sale_order, By.XPATH, driver=self.driver)
 
         default_window = self.driver.window_handles[0]
         handle_window = self.driver.window_handles[1]
@@ -155,7 +155,7 @@ class AutomationSapoOrder(SAPO):
             xpath = f'// span[text()="{get_value_of_config("sapo_quoc_co_shop")}"]/parent::div'
         elif get_value_of_config('sapo_giang_shop') in self.domain:
             xpath = f'// span[text()="{get_value_of_config("sapo_giang_shop")}"]/parent::div'
-        check_element_can_clickable(xpath, By.XPATH)
+        check_element_can_clickable(xpath, By.XPATH, driver=self.driver)
         self.driver.find_element(By.XPATH, xpath).click()
 
     def filter_orders_date_time(self, is_available_search_order=False):
@@ -215,14 +215,14 @@ class AutomationSapoOrder(SAPO):
             self.driver.get(f'{self.domain}/admin/orders')
             search_xpath = '//input[contains(@id,"Sapo-TextField")]'
 
-            attempt_check_exist_by_xpath(search_xpath)
+            attempt_check_exist_by_xpath(search_xpath, driver=self.driver)
             search_input = self.driver.find_element(By.XPATH, search_xpath)
             search_input.send_keys(order)
             search_input.send_keys(Keys.ENTER)
 
             order_xpath = f'//table[@class="MuiTable-root"]/tbody/tr[1]/td/p/a[text()="{order}"]'
             try:
-                attempt_check_can_clickable_by_xpath(order_xpath)
+                attempt_check_can_clickable_by_xpath(order_xpath, driver=self.driver)
                 self.driver.find_element(By.XPATH, order_xpath).click()
                 self.get_order_json()
             except NoSuchElementException:
@@ -231,7 +231,7 @@ class AutomationSapoOrder(SAPO):
     def get_order_json(self):
         xpath = "//pre"
         self.driver.get(self.driver.current_url + '.json')
-        attempt_check_exist_by_xpath(xpath)
+        attempt_check_exist_by_xpath(xpath, driver=self.driver)
         string_json = self.driver.find_element(By.XPATH, xpath).get_attribute("innerHTML")
         parse_json = json.loads(string_json)['order']
         order = Order.from_dict(parse_json)

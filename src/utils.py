@@ -74,10 +74,10 @@ def get_user_env(name) -> str:
     return val
 
 
-def attempt_check_exist_by_xpath(xpath, max_attempt=5):
+def attempt_check_exist_by_xpath(xpath, max_attempt=5, driver: WebDriverWait = None):
     attempt = 0
     while attempt < max_attempt:
-        if not check_element_exist(xpath):
+        if not check_element_exist(element=xpath, driver=driver):
             attempt = attempt + 1
         else:
             time.sleep(2)
@@ -85,10 +85,10 @@ def attempt_check_exist_by_xpath(xpath, max_attempt=5):
     raise NoSuchElementException(msg=f"Cannot find element at XPath {xpath}")
 
 
-def attempt_check_can_clickable_by_xpath(xpath, max_attempt=5):
+def attempt_check_can_clickable_by_xpath(xpath, max_attempt=5, driver: WebDriverWait = None):
     attempt = 0
     while attempt < max_attempt:
-        if not check_element_can_clickable(xpath):
+        if not check_element_can_clickable(xpath, driver=driver):
             attempt = attempt + 1
         else:
             time.sleep(2)
@@ -97,28 +97,30 @@ def attempt_check_can_clickable_by_xpath(xpath, max_attempt=5):
 
 
 # Wait for the presence of a specific element on the page
-def check_element_exist(element, type: By = By.XPATH, timeout=10):
+def check_element_exist(element, type: By = By.XPATH, timeout=10, driver: WebDriverWait = None):
     try:
         element_present = EC.presence_of_element_located((type, element))
-        WebDriverWait(AppConfig().chrome_driver, timeout).until(element_present)
+        WebDriverWait(driver=driver, timeout=timeout).until(element_present)
         return True
     except TimeoutException:
         return False
 
 
-def check_element_not_exist(element: object, type: By = By.XPATH, timeout: object = 10) -> object:
+def check_element_not_exist(element: object, type: By = By.XPATH, timeout: object = 10,
+                            driver: WebDriverWait = None) -> object:
     try:
         element_present = EC.invisibility_of_element((type, element))
-        WebDriverWait(AppConfig().chrome_driver, timeout).until(element_present)
+        WebDriverWait(driver=driver, timeout=timeout).until(element_present)
         return True
     except TimeoutException:
         return False
 
 
-def check_element_can_clickable(element, type: By = By.XPATH, timeout=10):
+def check_element_can_clickable(element, type: By = By.XPATH, timeout=10,
+                                driver: WebDriverWait = None):
     try:
         element_present = EC.element_to_be_clickable((type, element))
-        WebDriverWait(AppConfig().chrome_driver, timeout).until(element_present)
+        WebDriverWait(driver, timeout).until(element_present)
         return True
     except TimeoutException:
         return False

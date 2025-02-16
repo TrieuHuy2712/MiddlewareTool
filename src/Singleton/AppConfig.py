@@ -1,23 +1,26 @@
+import threading
+
 import chromedriver_autoinstaller
 from selenium import webdriver
 
 
 class AppConfig:
-    _instance = None
+    _thread_local = threading.local()
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(AppConfig, cls).__new__(cls)
-            chromedriver_autoinstaller.install()
-            """Set driver """
-            cls._instance.chrome_driver = webdriver.Chrome()
-        return cls._instance
+    def __init__(self):
+        chromedriver_autoinstaller.install()
 
-    def get_chrome_driver(self):
-        return self.chrome_driver
+    @classmethod
+    def get_chrome_driver(cls):
+        """Lấy WebDriver cho thread hiện tại, nếu chưa có thì tạo mới."""
+        if not hasattr(cls._thread_local, "chrome_driver"):
+            options = webdriver.ChromeOptions()
+            cls._thread_local.chrome_driver = webdriver.Chrome(options=options)
+        return cls._thread_local.chrome_driver
 
     @classmethod
     def destroy_instance(cls):
-        if cls._instance:
-            cls._instance.chrome_driver.quit()
-            cls._instance = None
+        """Đóng WebDriver của thread hiện tại nếu tồn tại."""
+        if hasattr(cls._thread_local, "chrome_driver"):
+            cls._thread_local.chrome_driver.quit()
+            del cls._thread_local.chrome_driver  # Xóa WebDriver khỏi thread-local storage
