@@ -138,6 +138,19 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
             driver.find_element(By.XPATH, input_customer_xpath).send_keys(
                 f"{get_value_of_config('environment')} Mã đơn hàng: {order.code}(Bán hàng qua Website: giangs.vn)")
 
+            # Input certificate number
+            certificate_number_xpath = '//div[text()="Số chứng từ"]/parent::div/parent::div/parent::div/following-sibling::div//input'
+            attempt_check_exist_by_xpath(certificate_number_xpath, driver=driver)
+
+            current_certificate_number = driver.find_element(By.XPATH, certificate_number_xpath).get_attribute('value')
+            unix_time = str(int(time.time() * 1000))
+            new_certificate_number = current_certificate_number[:7] + '-' + unix_time
+
+            driver.find_element(By.XPATH, certificate_number_xpath).send_keys(Keys.CONTROL + "a")
+            driver.find_element(By.XPATH, certificate_number_xpath).send_keys(Keys.DELETE)
+
+            driver.find_element(By.XPATH, certificate_number_xpath).send_keys(new_certificate_number)
+
             # Input detail
             sku_quantity = self.__calculate_warehouse_quantity_item__(order.order_line_items)
             add_line_button_xpath = '//div[normalize-space(text())="Thêm dòng"]/ancestor::button'
