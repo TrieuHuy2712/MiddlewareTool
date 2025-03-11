@@ -306,6 +306,9 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         self._action_click_with_xpath_(quantity_xpath, driver=driver)
         attempt_check_can_clickable_by_xpath(f'{quantity_xpath}//input', driver=driver)
         col = driver.find_element(By.XPATH, f'{quantity_xpath}//input')
+        col.send_keys(Keys.CONTROL + "a")
+        col.send_keys(Keys.DELETE)
+        time.sleep(2)
         col.send_keys(quantity)
         col.send_keys(Keys.TAB)
 
