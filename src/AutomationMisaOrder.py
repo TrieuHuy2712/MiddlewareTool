@@ -64,6 +64,9 @@ class AutomationMisaOrder(ABC):
         driver.get(url)
 
     def _go_to_sale_page(self, driver):
+        # Check expand collapse
+        self.expand_menu_attribute(driver)
+
         # Click a tag Sale Order
         sa_xpath = '//div[text()="Bán hàng"]/parent::a'
         self._action_click_with_xpath_(sa_xpath, driver=driver)
@@ -91,6 +94,9 @@ class AutomationMisaOrder(ABC):
         self._action_click_with_xpath_(discount_total_option_xpath, driver=driver)
 
     def _go_to_warehouse_page(self, driver):
+        # Check expand collapse
+        self.expand_menu_attribute(driver)
+
         # Click warehouse tag
         warehouse_xpath = '//div[text()="Kho"]/parent::a'
         self._action_click_with_xpath_(warehouse_xpath, driver=driver)
@@ -160,3 +166,10 @@ class AutomationMisaOrder(ABC):
         if hasattr(self._thread_local, "driver"):
             self._thread_local.driver.quit()
             del self._thread_local.driver  # Xóa WebDriver khỏi thread-local storage
+
+    def expand_menu_attribute(self, driver):
+        menu_attribute_xpath = driver.find_element(By.ID, 'menu-container')
+        if "expand" not in menu_attribute_xpath.get_attribute("class"):
+            # Click collapse button
+            collapse_button_xpath = "//div[contains(@class, 'collapse-option')]//div[contains(@class, 'menu-item') and contains(@class, 'router-link-active')]"
+            self._action_click_with_xpath_(collapse_button_xpath, driver=driver)

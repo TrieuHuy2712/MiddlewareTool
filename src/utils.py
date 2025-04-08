@@ -1,10 +1,10 @@
 import json
 import logging
+import logging.handlers
 import os
 import time
 from datetime import datetime, timedelta
 from functools import lru_cache
-import logging.handlers
 
 import pandas
 import pytz
@@ -15,7 +15,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from src.InputProduct import InputProduct
-from src.Singleton.AppConfig import AppConfig
 
 
 def set_up_logger(logger_id):
@@ -33,8 +32,8 @@ def set_up_logger(logger_id):
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    exp_handler = logging.handlers.RotatingFileHandler(
-        logger_id + '.log', maxBytes=3000000, backupCount=5)
+    exp_handler = logging.handlers.RotatingFileHandler(f'{logger_id}-{datetime.now().strftime("%Y-%m-%d")}.log',
+                                                       maxBytes=3000000, backupCount=5)
     logger.addHandler(exp_handler)
 
     fmr = logging.Formatter(

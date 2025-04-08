@@ -46,7 +46,7 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
                                      np.array_split(self.missing_orders, int(get_value_of_config("chunk_size")))
                                      if len(chunk) > 0]
                 self.logging.info(
-                    msg=f"[Misa-Sapo] Retry create missing order at {self.attempt}")
+                    msg=f"[Misa-WEB] Retry create missing order at {self.attempt}")
                 self.send_orders_to_misa()
                 self.attempt = self.attempt + 1
         except Exception as e:
@@ -79,7 +79,7 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
                 msg=f"[Misa-SAPO] Not handle orders: "
                     f"{','.join(o.code for o in self.orders if o.code not in self.handle_orders)}")
             self.close_driver()
-            self.logging.info(msg=f"[Misa-SAPO] Completed automation Misa Order at thread {chunk_id}")
+            self.logging.info(msg=f"[Misa-WEB] Completed automation Misa Order at thread {chunk_id}")
 
     def handler_create_list_invoice(self, orders: list[Order], driver):
         for order in orders:
@@ -175,8 +175,10 @@ class AutomationMisaOrderFromWEB(AutomationMisaOrder, IDetailInvoice):
             self._escape_current_invoice(driver=driver)
             self.logging.info(f"[Misa Warehouse] Created order {order.code}.")
         except Exception as e:
-            self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed.")
-            raise OrderError(message=f"Have error in create Misa warehouse. {e}")
+            self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed. got error: {e} Retry again")
+            self._escape_current_invoice(driver=driver)
+            self._go_to_warehouse_page(driver=driver)
+            self.create_detail_warehouse_invoice(order, driver=driver)
 
     def __set_data_for_table(self, sku, quantity, discount_rate, current_row, driver):
         # SKU Code

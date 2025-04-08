@@ -207,8 +207,10 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
             self._escape_current_invoice(driver=driver)
             self.logging.info(f"[Misa Warehouse] Created order {order.code}.")
         except Exception as e:
-            self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed.")
-            raise OrderError(message=f"Have error in create Misa warehouse. {e}")
+            self.logging.error(msg=f"[Misa Warehouse] Created order {order.code} failed. got error: {e} Retry again")
+            self._escape_current_invoice(driver=driver)
+            self._go_to_warehouse_page(driver=driver)
+            self.create_detail_warehouse_invoice(order, driver=driver)
 
     def __set_data_for_table(self, request_table: MisaRequestTable, driver):
 
@@ -255,6 +257,8 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
                 driver.find_element(By.XPATH, total_money_xpath).text)
             discount_value = 0 if request_table.discount_value == 0 else round(
                 total_money_value / request_table.line_amount * request_table.discount_value)
+
+            discount_value = 0 if request_table.source_name == 'TiktokShop' else discount_value
 
             # Giá trị Chiết khấu
             discount_value_xpath = f'//table[@class="ms-table"]/tbody/tr[{request_table.current_row}]/td[12]/div'
