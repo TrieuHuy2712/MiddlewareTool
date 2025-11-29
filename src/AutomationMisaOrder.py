@@ -32,12 +32,13 @@ class AutomationMisaOrder(ABC):
     def _escape_current_invoice(self):
         # Check balance modal
         if not check_element_not_exist('//span[contains(@id, "idMessage") and contains(text(), "Tổng tiền thuế GTGT")]', timeout=30):
-            yes_button_xpath = '//span[contains(@id, "idMessage") and contains(text(), "Tổng tiền thuế GTGT")]/ancestor::div[@class="ms-message-box--content"]/div[@class="mess-footer"]//button/div[contains(text(),"Có")]'
+            yes_button_xpath = '//span[contains(@id, "idMessage") and contains(text(), "Tổng tiền thuế GTGT")]/ancestor::div[@class="ms-message-box--content"]/div[@class="mess-footer"]//button/div[contains(text(),"Không")]'
             self.driver.find_element(By.XPATH, yes_button_xpath).click()
 
         # Escape
-        attempt_check_can_clickable_by_xpath('//div[contains(@class,"close-btn header")]')
-        self.driver.find_element(By.XPATH, '//div[contains(@class,"close-btn header")]').click()
+        if check_element_not_exist(element='ms-message-bg', timeout=30, type=By.CLASS_NAME):
+            attempt_check_can_clickable_by_xpath('//div[contains(@class,"close-btn header")]', max_attempt=15)
+            self.driver.find_element(By.XPATH, '//div[contains(@class,"close-btn header")]').click()
 
         # Check if existed after unit time
         if not check_element_not_exist('//div[@class="title"]', timeout=30):
