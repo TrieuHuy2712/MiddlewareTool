@@ -152,6 +152,12 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
                    or item.sku != item.composite_item_domains[0].sku for item in order.order_line_items):
                 self.__set_order_balance(order, driver=driver)
             self.__set_invoice_appendix(order=order, driver=driver)
+
+            # Another source - Số đơn hàng từ he thong khác
+            another_source_xpath = '//div[normalize-space(text())="Số đơn hàng từ hệ thống khác"]/parent::div/parent::div/parent::div/following-sibling::div//input'
+            attempt_check_exist_by_xpath(another_source_xpath)
+            driver.find_element(By.XPATH, input_customer_xpath).send_keys(order.code)
+
             list_added_items = []
 
             # Save invoice
@@ -349,11 +355,10 @@ class AutomationMisaOrderFromSAPO(AutomationMisaOrder, IDetailInvoice):
         self._action_click_with_xpath_(note_xpath, driver=driver)
 
         # Get the last line of table
-        attempt_check_can_clickable_by_xpath(f'{note_xpath}//input', driver=driver)
+        attempt_check_can_clickable_by_xpath(f'{note_xpath}//input')
         col = driver.find_element(By.XPATH, f'{note_xpath}//input')
-        col.send_keys(f"Bổ sung đơn hàng ngày "
-                      f"{created_date.day}/{created_date.month}/{created_date.year} "
-                      f"(Mã đơn hàng: {order.code})")
+        col.send_keys(f"Mã đơn hàng: {order.code}")
+
 
     def __get_discount_amount(self, order: Order, driver):
         add_line_button_xpath = '//div[normalize-space(text())="Thêm dòng"]/ancestor::button'
